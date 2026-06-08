@@ -135,7 +135,7 @@ before paid steps; abuse/cost guards (max in-flight, daily spend cap, upload lim
 
 ## 14. Cost Model  *(if metered)*
 Marginal cost ≈ sum of vendor calls + storage/egress + worker compute. Credit pricing covers this with
-margin; the per-step credit map (§10) is the lever. See `PRICING.md`. Track realized cost on `jobs.cost_credits`.
+margin; the per-step credit map (§10) is the lever. See `pricing.md`. Track realized cost on `jobs.cost_credits`.
 
 ## 15. Open Questions / To Confirm Later
 1. <the real unknowns — launch target, vendor access path, thresholds — with what each would change>.

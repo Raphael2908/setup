@@ -259,7 +259,7 @@ def client():
 A `credit_ledger` table is the source of truth for balance: rows are `(user_id, delta, reason, ref_id,
 balance_after)`. **Reserve** on enqueue (negative delta), **refund** on failure/cancel. Stripe webhooks
 are the **only** path that grants credits, idempotent via a `stripe_events(event_id)` table. The credit
-map (per-step costs) is calibrated in code from `VENDOR_COST_USD` at a target margin (see `PRICING.md`).
+map (per-step costs) is calibrated in code from `VENDOR_COST_USD` at a target margin (see `pricing.md`).
 The API checks balance before enqueue; insufficient → 402 with the shortfall.
 
 ---

@@ -113,7 +113,7 @@ file-based blog. `@radix-ui/*`, `motion`, `lucide-react`, `clsx`, `tailwind-merg
 
 ```
 <project>/
-├── architecture.md current_progress.md todo.md PRICING.md marketing.md CLAUDE.md README.md
+├── architecture.md current_progress.md todo.md pricing.md marketing.md CLAUDE.md README.md
 ├── Makefile  docker-compose.yml  .env.example  .gitignore
 ├── backend/
 │   ├── pyproject.toml  Dockerfile  entrypoint.sh

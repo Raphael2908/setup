@@ -24,7 +24,7 @@ Run the skill against a new product idea and it walks through four phases:
 ## The conventions it reproduces
 
 - **Documentation-driven** — five markdown docs are the source of truth (`architecture.md`,
-  `current_progress.md`, `todo.md`, `PRICING.md`, `marketing.md`) plus a `CLAUDE.md` pointer.
+  `current_progress.md`, `todo.md`, `pricing.md`, `marketing.md`) plus a `CLAUDE.md` pointer.
 - **Thin API, heavy workers** — the API validates/authorizes/enqueues; workers own slow external work.
 - **Provider abstraction** — every vendor sits behind an interface; a factory returns a **mock**
   (default, keyless, bootable) or a **real** impl by `PROVIDER_MODE`.
@@ -36,7 +36,7 @@ Run the skill against a new product idea and it walks through four phases:
   split into an autoscaled topology mechanical later.
 
 The skill is **adaptive**: it drops Celery/workers for plain CRUD products, and the credit ledger /
-`PRICING.md` for non-metered ones, so the skeleton fits each new product.
+`pricing.md` for non-metered ones, so the skeleton fits each new product.
 
 ## Layout
 
@@ -50,7 +50,7 @@ templates/
   architecture.md              # 15-section design template (the spine)
   current_progress.md          # running build-log template
   todo.md                      # product backlog template
-  PRICING.md                   # cost → credit margin model template
+  pricing.md                   # cost → credit margin model template
   marketing.md                 # go-to-market (first-N users) template
 ```
 

@@ -1,7 +1,7 @@
 # <PRODUCT> — Go-To-Market Plan: First <N> (Paying) Users
 
 > Companion docs: `architecture.md` (design), `current_progress.md` (build log), `todo.md` (backlog),
-> `PRICING.md` (cost/margin). This file is the **marketing** source of truth.
+> `pricing.md` (cost/margin). This file is the **marketing** source of truth.
 
 ## Context
 

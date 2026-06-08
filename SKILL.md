@@ -32,7 +32,7 @@ The stack, at a glance (full detail in `reference/stack.md`):
 And the **conventions that make it work** (full detail in `reference/patterns.md`):
 
 1. **Documentation-driven.** Five markdown docs are the source of truth: `architecture.md` (design),
-   `current_progress.md` (running build log), `todo.md` (product backlog), `PRICING.md` (cost/margin
+   `current_progress.md` (running build log), `todo.md` (product backlog), `pricing.md` (cost/margin
    model, if metered), `marketing.md` (GTM). A `CLAUDE.md` points future agents at them.
 2. **Thin API, heavy workers.** The API never blocks on slow/external work; it enqueues. Workers own
    the long-running calls. Postgres is the source of truth for job state; Redis is transport + ephemeral.
@@ -73,9 +73,9 @@ interrogating.
   machine. If **no** (plain CRUD/SaaS) → drop Celery/workers/beat and the provider layer; keep the
   thin-API + repo + Supabase + Next + Docker bones. Decide this explicitly; it changes the scaffold.
 - **External vendors** (if any) and what each does → these become provider interfaces + real impls.
-- **Billing model.** Metered credits? Flat subscription? Free? If metered → keep `PRICING.md` + the
+- **Billing model.** Metered credits? Flat subscription? Free? If metered → keep `pricing.md` + the
   credit ledger; calibrate the credit map to real vendor cost at a target margin. If flat/free → keep
-  a simpler Stripe subscription sync and skip the ledger/PRICING.md.
+  a simpler Stripe subscription sync and skip the ledger/pricing.md.
 - **GTM / ICP.** Who are the first users and how are they reached? Drives `marketing.md`.
 
 Capture the answers; they are the inputs to every template below.
@@ -94,7 +94,7 @@ Create these at the new project root, adapting the templates in `templates/` to 
    where the project is, what's built, conventions locked, what's next. It's the running log future
    sessions read; seed it now and keep it updated as you scaffold.
 3. **`todo.md`** (from `templates/todo.md`) — the prioritized product backlog, newest first.
-4. **`PRICING.md`** (from `templates/PRICING.md`) — only if metered. Derive the credit map from real
+4. **`pricing.md`** (from `templates/pricing.md`) — only if metered. Derive the credit map from real
    vendor cost at a stated target margin; the numbers live in code (`services/credits.py`), this is the
    rationale. Skip if the product isn't usage-metered.
 5. **`marketing.md`** (from `templates/marketing.md`) — the GTM plan to the first N users.
