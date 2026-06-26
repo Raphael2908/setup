@@ -2,7 +2,7 @@
 
 These are the conventions that make the stack work. They transfer **verbatim** to a new product — only
 the resource names, provider list, and pipeline steps change. Snippets below are generalized from the
-real HexUGC files; reproduce them faithfully. (If the HexUGC repo is reachable, read the real files for
+real source files; reproduce them faithfully. (If the reference repo is reachable, read the real files for
 the exact current form.)
 
 ---

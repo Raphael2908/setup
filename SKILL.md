@@ -1,12 +1,12 @@
 ---
 name: setup
-description: Scaffold a fresh product from scratch reusing the HexUGC tech stack and conventions — a documentation-driven FastAPI + Celery + Redis + Supabase + Next.js + Docker stack with a provider abstraction, a repo pattern, a credit ledger, phased single-box→scale-up infra, and no-network tests. Use when starting a NEW project and the user wants to reuse "that stack" / "the HexUGC setup" / build "like hexugc". Produces the five source-of-truth docs first, then the code scaffold that boots in mock mode with no secrets.
+description: Scaffold a fresh product from scratch reusing a proven tech stack and conventions — a documentation-driven FastAPI + Celery + Redis + Supabase + Next.js + Docker stack with a provider abstraction, a repo pattern, a credit ledger, phased single-box→scale-up infra, and no-network tests. Use when starting a NEW project and the user wants to reuse "that stack" / "the same setup" / build "like the reference stack". Produces the five source-of-truth docs first, then the code scaffold that boots in mock mode with no secrets.
 ---
 
-# Set up a new project on the HexUGC stack
+# Set up a new project on the reference stack
 
 This skill reproduces a proven, documentation-driven web-product stack for a **brand-new product**.
-It is not a copy of HexUGC's domain (avatars/videos) — it is the *reusable skeleton* underneath it:
+It is not a copy of the reference product's domain (avatars/videos) — it is the *reusable skeleton* underneath it:
 the architecture, the conventions, and the infrastructure patterns. You bring the product idea; this
 skill turns it into a bootable scaffold with the same bones.
 
@@ -54,7 +54,7 @@ the scaffold coherent, and they're half the value the user is asking for.
 
 ### Phase 0 — Locate the canonical reference (optional but recommended)
 
-If the HexUGC repo is reachable on this machine (commonly a sibling dir, e.g. `../hexugc`), read its
+If the reference repo is reachable on this machine (commonly a sibling dir), read its
 real files as ground truth when a pattern is unclear — they are the most faithful copy of any snippet.
 Ask the user for the path if you're unsure. If it's not reachable, this skill's `reference/` files carry
 enough to reproduce the stack on their own.
@@ -66,7 +66,7 @@ with `AskUserQuestion` where it helps). Keep it tight — infer sensible default
 interrogating.
 
 - **What is the product?** One-paragraph description: who it's for, what it produces/does.
-- **Core domain objects.** The nouns (e.g. for HexUGC: avatars, products, projects, jobs, assets).
+- **Core domain objects.** The nouns (e.g. avatars, products, projects, jobs, assets).
   These become the data model (§5) and the resources the API + repo expose.
 - **Is there long-running / external work?** (AI calls, video/image processing, third-party APIs that
   take seconds–minutes.) If **yes** → keep Celery + the provider abstraction + the pipeline state
@@ -98,7 +98,7 @@ Create these at the new project root, adapting the templates in `templates/` to 
    vendor cost at a stated target margin; the numbers live in code (`services/credits.py`), this is the
    rationale. Skip if the product isn't usage-metered.
 5. **`marketing.md`** (from `templates/marketing.md`) — the GTM plan to the first N users.
-6. **`CLAUDE.md`** — a short pointer file (model it on HexUGC's): what the project is, the commands
+6. **`CLAUDE.md`** — a short pointer file (model it on the reference project's): what the project is, the commands
    (`make` targets), the architecture in brief, and the conventions/gotchas. Tell future agents to read
    `architecture.md` + `current_progress.md` first.
 
@@ -110,7 +110,7 @@ providers, factory, celery app, auth, fixtures, entrypoint, compose, API client)
 
 - **Boot in mock mode with no secrets.** Every vendor key defaults blank; `PROVIDER_MODE=mock` returns
   canned data. The whole stack must `make up` and `make test` green before any real key exists.
-- **Reproduce the bones, not HexUGC's domain.** Use the product's own nouns, providers, pipeline steps,
+- **Reproduce the bones, not the reference product's domain.** Use the product's own nouns, providers, pipeline steps,
   and routers. The *patterns* (provider/factory/repo/config/celery/auth/fixtures) transfer verbatim;
   the *contents* are the new product's.
 - **One image, ROLE dispatch.** `entrypoint.sh` switches `api|worker|beat`; compose runs each role.
@@ -136,4 +136,4 @@ first real steps (provision Supabase/Stripe/vendors, fill `.env`, write the firs
 - `templates/*.md` — the five doc templates to adapt in Phase 2.
 
 Stay matched to these patterns; the user chose this stack deliberately. Don't invent new structure when
-an existing convention fits, and don't carry HexUGC's domain into the new product.
+an existing convention fits, and don't carry the reference product's domain into the new product.

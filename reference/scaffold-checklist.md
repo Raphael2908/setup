@@ -13,7 +13,7 @@ not metered → skip ledger/billing/PRICING). See `patterns.md` for the code of 
 - [ ] `.env.example` — every key from `config.py`, grouped (Runtime, API/CORS, Redis, Supabase, AWS/S3,
       Stripe, Resend, vendors, guards, NEXT_PUBLIC_*). No real values.
 - [ ] `Makefile` — `up down build logs ps test lint fmt migrate maintenance-on maintenance-off` (model
-      on HexUGC's; `up = docker compose up --build`, `test = cd backend && uv run pytest -q`).
+      on the reference project's; `up = docker compose up --build`, `test = cd backend && uv run pytest -q`).
 - [ ] `README.md` — one screen: what it is, `make` commands, link to `architecture.md`.
 
 ## Block 1 — Backend core (boots + serves /healthz)

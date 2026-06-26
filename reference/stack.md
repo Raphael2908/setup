@@ -1,6 +1,6 @@
 # The stack — annotated, with versions and layout
 
-This is the tech stack the `setup` skill reproduces. It is the HexUGC stack with the domain stripped
+This is the tech stack the `setup` skill reproduces. It is a proven production stack with the domain stripped
 out. Use it to fill `architecture.md` §3 and to pin dependency versions when scaffolding.
 
 ## Layers
