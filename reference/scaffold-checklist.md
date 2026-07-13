@@ -110,6 +110,9 @@ not metered → skip ledger/billing/PRICING). See `patterns.md` for the code of 
 
 - [ ] Confirm the five docs (Phase 2) match what was built; update `current_progress.md` to "scaffold
       stood up" with what's next.
-- [ ] `CLAUDE.md` points future agents at `architecture.md` + `current_progress.md` and lists `make` cmds.
+- [ ] `CLAUDE.md` points future agents at `/kt` (and `architecture.md` + `current_progress.md`) and lists `make` cmds.
+- [ ] `.claude/skills/kt/SKILL.md` (from `templates/kt-skill.md`) — the `/kt` knowledge-transfer skill;
+      §-index regenerated from the actual `architecture.md`, conditional table trimmed to the docs
+      that exist, template note deleted.
 - [ ] Summarize for the user: what's scaffolded, what's mocked/blank, first real steps (provision
       Supabase/Stripe/vendors, fill `.env`, write the first real provider, apply migrations).

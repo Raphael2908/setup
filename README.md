@@ -24,7 +24,8 @@ Run the skill against a new product idea and it walks through four phases:
 ## The conventions it reproduces
 
 - **Documentation-driven** — five markdown docs are the source of truth (`architecture.md`,
-  `current_progress.md`, `todo.md`, `pricing.md`, `marketing.md`) plus a `CLAUDE.md` pointer.
+  `current_progress.md`, `todo.md`, `pricing.md`, `marketing.md`) plus a `CLAUDE.md` pointer and a
+  `/kt` knowledge-transfer skill that loads them in order at the start of every task.
 - **Thin API, heavy workers** — the API validates/authorizes/enqueues; workers own slow external work.
 - **Provider abstraction** — every vendor sits behind an interface; a factory returns a **mock**
   (default, keyless, bootable) or a **real** impl by `PROVIDER_MODE`.
@@ -52,6 +53,7 @@ templates/
   todo.md                      # product backlog template
   pricing.md                   # cost → credit margin model template
   marketing.md                 # go-to-market (first-N users) template
+  kt-skill.md                  # /kt knowledge-transfer skill template (→ .claude/skills/kt/SKILL.md)
 ```
 
 ## Using it

@@ -33,7 +33,8 @@ And the **conventions that make it work** (full detail in `reference/patterns.md
 
 1. **Documentation-driven.** Five markdown docs are the source of truth: `architecture.md` (design),
    `current_progress.md` (running build log), `todo.md` (product backlog), `pricing.md` (cost/margin
-   model, if metered), `marketing.md` (GTM). A `CLAUDE.md` points future agents at them.
+   model, if metered), `marketing.md` (GTM). A `CLAUDE.md` points future agents at them, and a
+   `/kt` knowledge-transfer skill loads them in order at the start of every task.
 2. **Thin API, heavy workers.** The API never blocks on slow/external work; it enqueues. Workers own
    the long-running calls. Postgres is the source of truth for job state; Redis is transport + ephemeral.
 3. **Provider abstraction.** Every external vendor sits behind an interface; a `factory` returns a
@@ -99,8 +100,15 @@ Create these at the new project root, adapting the templates in `templates/` to 
    rationale. Skip if the product isn't usage-metered.
 5. **`marketing.md`** (from `templates/marketing.md`) — the GTM plan to the first N users.
 6. **`CLAUDE.md`** — a short pointer file (model it on the reference project's): what the project is, the commands
-   (`make` targets), the architecture in brief, and the conventions/gotchas. Tell future agents to read
-   `architecture.md` + `current_progress.md` first.
+   (`make` targets), the architecture in brief, and the conventions/gotchas. Tell future agents to run
+   `/kt` (or read `architecture.md` + `current_progress.md`) first.
+7. **`.claude/skills/kt/SKILL.md`** (from `templates/kt-skill.md`) — the project's `/kt`
+   knowledge-transfer skill. Future sessions run it before touching code; it loads
+   `architecture.md` → `current_progress.md` → `todo.md` in that order and routes to `pricing.md` /
+   `marketing.md` / `CLAUDE.md` conventions when the task calls for them. When adapting: replace
+   `<PRODUCT>`, regenerate its §-index from the *actual* `architecture.md` you just wrote (drop
+   deleted sections), trim the conditional table to the docs the product has, and delete the
+   template note.
 
 ### Phase 3 — Scaffold the code
 
@@ -133,7 +141,7 @@ first real steps (provision Supabase/Stripe/vendors, fill `.env`, write the firs
 - `reference/stack.md` — the full annotated tech stack, exact dependency versions, and the directory tree.
 - `reference/patterns.md` — the reusable code patterns with faithful snippets (the heart of "the stack").
 - `reference/scaffold-checklist.md` — ordered file-by-file build list with what each file does.
-- `templates/*.md` — the five doc templates to adapt in Phase 2.
+- `templates/*.md` — the five doc templates plus the `/kt` skill template (`kt-skill.md`) to adapt in Phase 2.
 
 Stay matched to these patterns; the user chose this stack deliberately. Don't invent new structure when
 an existing convention fits, and don't carry the reference product's domain into the new product.
