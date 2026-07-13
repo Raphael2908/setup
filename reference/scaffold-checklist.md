@@ -102,7 +102,9 @@ not metered → skip ledger/billing/PRICING). See `patterns.md` for the code of 
 - [ ] `infra/supabase/migrations/0001_init.sql` — the data-model tables + RLS + the `handle_new_user`
       profile trigger; later numbered migrations for added features. Manual rollbacks outside `migrations/`.
 - [ ] `infra/ops/graceful_deploy.sh` — maintenance-on → drain → rebuild → health-gate → maintenance-off.
-- [ ] `.github/workflows/deploy.yml` — SSH deploy on push to `master` running `graceful_deploy.sh` (later).
+      Faithful copy in `patterns.md` §10; needs `Repo.count_unfinished_jobs()` + an API 503 maintenance check.
+- [ ] `.github/workflows/deploy.yml` — SSH deploy on push to the default branch running `graceful_deploy.sh`
+      (patterns §10; repo secrets `EC2_HOST`/`EC2_USER`/`EC2_SSH_KEY`/`EC2_APP_DIR` — wire up once a box exists).
 - [ ] **Checkpoint:** `make up` → all services healthy; landing loads; `/api/healthz` 200; one mock
       end-to-end path works.
 

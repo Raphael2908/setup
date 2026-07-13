@@ -291,7 +291,160 @@ Authed pages live under `app/(app)/` behind an `AuthGate` that checks the Supaba
 
 ---
 
-## 10. Gotchas to carry over
+## 10. Graceful deploy (`infra/ops/graceful_deploy.sh` + `.github/workflows/deploy.yml`)
+
+Single-box deploys must never SIGKILL a job mid-flight (that burns vendor spend and fails the user).
+The sequence: **maintenance-on** (API rejects new job-creating requests with 503) → **drain** in-flight
+jobs → **rebuild + warm restart** → **health-gate** → **maintenance-off**. CI stays dumb: GitHub
+Actions SSHes into the box, git-resets the app dir to the pushed commit, and runs the script — so the
+freshly pushed version of the script is always the one that runs.
+
+`.github/workflows/deploy.yml` (match `branches:` to the repo's default branch; repo secrets:
+`EC2_HOST`, `EC2_USER`, `EC2_SSH_KEY`, `EC2_APP_DIR`):
+
+```yaml
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: # manual re-run button in the Actions tab
+
+concurrency: # never run two deploys against the box at once
+  group: deploy-ec2
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true # abort on the first failed command
+          command_timeout: "30m" # graceful drain can wait up to ~20m for in-flight jobs
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.EC2_APP_DIR }}"
+
+            # Mirror the remote exactly. --hard leaves untracked files (e.g. .env) intact.
+            git fetch origin master
+            git reset --hard origin/master
+
+            # Graceful deploy: pause new generation, drain in-flight jobs, then
+            # rebuild + health-gate. Re-read post-reset, so the latest sequence runs.
+            bash infra/ops/graceful_deploy.sh
+```
+
+`infra/ops/graceful_deploy.sh`:
+
+```bash
+#!/usr/bin/env bash
+# Graceful deploy: drain in-flight work before recreating containers, so a deploy
+# never SIGKILLs a job mid-flight (burning vendor spend + failing the user).
+#
+# Sequence:
+#   1. Enter maintenance mode  → API rejects NEW job-creating requests (503).
+#   2. Drain                   → wait until no jobs are queued/running.
+#   3. Rebuild + warm restart  → recreate containers (stop_grace_period is the
+#                                backstop for anything still running).
+#   4. Health gate             → wait for /healthz to come back healthy.
+#   5. Exit maintenance mode   → only after a healthy boot (else stay paused).
+#
+# Runs ON the box from the app dir (the workflow git-resets, then invokes this).
+# Redis stays up throughout; AOF keeps the queue durable across the rebuild.
+set -euo pipefail
+
+# How long to wait for in-flight jobs to finish before proceeding anyway. On
+# timeout the worker's stop_grace_period + acks_late redelivery + watchdog
+# still protect any straggler — worst case it finishes during shutdown.
+DRAIN_TIMEOUT_TICKS=120   # 120 × 10s = 20 min
+HEALTH_TICKS=30           # 30 × 5s = 150s
+
+redis() { docker compose exec -T redis redis-cli "$@"; }
+
+# Global count of jobs still queued/running (Postgres is the source of truth).
+unfinished_jobs() {
+  docker compose exec -T api python - <<'PY'
+from app.db.repo import get_repo
+print(get_repo().count_unfinished_jobs())
+PY
+}
+
+echo "==> Entering maintenance mode (new job requests will be rejected)"
+redis SET maintenance:mode 1 >/dev/null
+
+echo "==> Draining in-flight jobs (timeout: $((DRAIN_TIMEOUT_TICKS * 10))s)"
+drained=0
+for i in $(seq 1 "$DRAIN_TIMEOUT_TICKS"); do
+  # Tolerate a transient exec/parse hiccup mid-drain without aborting the deploy.
+  n="$(unfinished_jobs 2>/dev/null | tr -dc '0-9')" || n=""
+  if [ -n "$n" ] && [ "$n" -eq 0 ]; then
+    echo "Drained — no jobs in flight."
+    drained=1
+    break
+  fi
+  echo "Waiting for ${n:-?} job(s) to finish... ($i/$DRAIN_TIMEOUT_TICKS)"
+  sleep 10
+done
+if [ "$drained" -ne 1 ]; then
+  echo "WARN: drain timed out — proceeding; stop_grace_period + watchdog cover stragglers."
+fi
+
+echo "==> Rebuilding and warm-restarting the stack"
+docker compose up -d --build --remove-orphans
+docker image prune -f
+
+# Compose doesn't hash bind-mount contents, so a Caddyfile-only change leaves
+# the running caddy container on the old config — reload it explicitly
+# (graceful, zero downtime; a no-op when the config is already current).
+echo "==> Reloading Caddy config"
+docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile
+
+echo "==> Health gate"
+healthy=0
+for i in $(seq 1 "$HEALTH_TICKS"); do
+  if curl -fsS http://localhost/healthz >/dev/null 2>&1; then
+    echo "Healthy"
+    healthy=1
+    break
+  fi
+  echo "Waiting for health... ($i/$HEALTH_TICKS)"
+  sleep 5
+done
+
+if [ "$healthy" -ne 1 ]; then
+  echo "Health check failed — leaving maintenance mode ON so no new work hits a broken deploy."
+  docker compose ps
+  docker compose logs --tail=50 api
+  exit 1
+fi
+
+echo "==> Exiting maintenance mode"
+redis DEL maintenance:mode >/dev/null
+echo "Deploy complete."
+```
+
+Adapting it to the new product:
+
+- **Drain check** — `count_unfinished_jobs()` (jobs not in a terminal state) goes on the `Repo`
+  interface (§3). **No async work (no Celery)?** Drop the maintenance/drain half; the script reduces
+  to rebuild → health-gate.
+- **Maintenance mode needs an API-side check** — middleware (or a dependency on the job-creating
+  routes) that returns 503 while Redis `maintenance:mode` is set. Health and read endpoints stay
+  open; the frontend apiClient (§9) already turns the 503 into a friendly "update incoming" message.
+- **The timeouts interlock** — workflow `command_timeout` (30m) > drain timeout (20m) + rebuild +
+  health gate; worker `stop_grace_period` (compose) > the longest hard task timeout, as the backstop
+  for stragglers past the drain window.
+- **A failed health gate exits 1 and leaves maintenance ON** — deliberate, so no new work hits a
+  broken deploy. Fix and redeploy, or `make maintenance-off` after manual recovery.
+
+---
+
+## 11. Gotchas to carry over
 
 - **Tests run with no network** — keep every external call behind a provider/repo so mock mode is total.
 - **`NEXT_PUBLIC_*` are build-time** — set before `docker compose build`, passed as build args.
@@ -300,5 +453,5 @@ Authed pages live under `app/(app)/` behind an `AuthGate` that checks the Supaba
 - **Migrations** numbered `0001…` in `infra/supabase/migrations/`; keep manual rollbacks *outside* that
   dir so a `db push` never applies them.
 - **Graceful deploy** — pause new work via a Redis maintenance flag, drain in-flight jobs, rebuild,
-  health-gate. Worker `stop_grace_period` must exceed the longest hard task timeout.
+  health-gate (§10). Worker `stop_grace_period` must exceed the longest hard task timeout.
 - **Backend style** — ruff (line length 100, `E/F/I/UP/B`), `from __future__ import annotations`, 3.12.

@@ -114,7 +114,7 @@ Create these at the new project root, adapting the templates in `templates/` to 
 
 Build the skeleton to match the docs. Follow `reference/scaffold-checklist.md` for the exact file list
 and build order, and `reference/patterns.md` for the concrete, faithful code patterns (config, repo,
-providers, factory, celery app, auth, fixtures, entrypoint, compose, API client). Key rules:
+providers, factory, celery app, auth, fixtures, entrypoint, compose, API client, graceful deploy). Key rules:
 
 - **Boot in mock mode with no secrets.** Every vendor key defaults blank; `PROVIDER_MODE=mock` returns
   canned data. The whole stack must `make up` and `make test` green before any real key exists.

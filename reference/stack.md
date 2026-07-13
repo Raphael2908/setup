@@ -115,6 +115,7 @@ file-based blog. `@radix-ui/*`, `motion`, `lucide-react`, `clsx`, `tailwind-merg
 <project>/
 ├── architecture.md current_progress.md todo.md pricing.md marketing.md CLAUDE.md README.md
 ├── Makefile  docker-compose.yml  .env.example  .gitignore
+├── .github/workflows/deploy.yml  # SSH deploy on push → git reset on the box → runs graceful_deploy.sh
 ├── backend/
 │   ├── pyproject.toml  Dockerfile  entrypoint.sh
 │   └── app/
